@@ -10,28 +10,30 @@ permissions:
 
 jobs:
   build:
-    name: Build Job
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
           cache: maven
 
-      - name: Verify Java
+      - name: Verify Java & Maven
         run: |
           java -version
           javac -version
           mvn -version
 
-      - name: Compile Project
-        run: mvn clean compile
+      - name: Build Project
+        run: mvn clean package
 
-      - name: Run Unit Tests
-        run: mvn test
+      - name: Upload WAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-web-application
+          path: target/*.war
