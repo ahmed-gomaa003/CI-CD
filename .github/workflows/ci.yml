@@ -18,14 +18,17 @@ jobs:
 
       - name: Runner Information
         run: |
-          echo "Current User:"
+          echo "===== USER ====="
           whoami
 
-          echo "Current Directory:"
+          echo ""
+          echo "===== CURRENT DIRECTORY ====="
           pwd
 
-          echo "Operating System:"
+          echo ""
+          echo "===== OPERATING SYSTEM ====="
           uname -a
 
-          echo "Repository Files:"
+          echo ""
+          echo "===== FILES ====="
           ls -la
