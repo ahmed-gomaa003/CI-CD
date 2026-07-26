@@ -10,25 +10,28 @@ permissions:
 
 jobs:
   build:
+    name: Build Job
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Runner Information
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Verify Java
         run: |
-          echo "===== USER ====="
-          whoami
+          java -version
+          javac -version
+          mvn -version
 
-          echo ""
-          echo "===== CURRENT DIRECTORY ====="
-          pwd
+      - name: Compile Project
+        run: mvn clean compile
 
-          echo ""
-          echo "===== OPERATING SYSTEM ====="
-          uname -a
-
-          echo ""
-          echo "===== FILES ====="
-          ls -la
+      - name: Run Unit Tests
+        run: mvn test
