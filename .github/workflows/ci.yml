@@ -1,7 +1,6 @@
 name: Java CI
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
@@ -17,5 +16,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Print Hello
-        run: echo "Hello GitHub Actions!"
+      - name: Runner Information
+        run: |
+          echo "Current User:"
+          whoami
+
+          echo "Current Directory:"
+          pwd
+
+          echo "Operating System:"
+          uname -a
+
+          echo "Repository Files:"
+          ls -la
