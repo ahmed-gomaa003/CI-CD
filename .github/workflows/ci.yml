@@ -13,86 +13,58 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ==========================================
-      # Checkout Source Code
-      # ==========================================
+
+      ############################################
+      # Checkout
+      ############################################
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # ==========================================
-      # Setup Java
-      # ==========================================
-      - name: Setup Java 17
+      ############################################
+      # Java
+      ############################################
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "8"
           cache: maven
 
-      # ==========================================
-      # Cache SonarQube Scanner
-      # ==========================================
-      - name: Cache SonarQube Packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: |
-            ${{ runner.os }}-sonar
-
-      # ==========================================
+      ############################################
       # Verify Environment
-      # ==========================================
+      ############################################
       - name: Verify Java & Maven
         run: |
           java -version
           javac -version
           mvn -version
 
-      # ==========================================
-      # Build & Run Tests
-      # ==========================================
+      ############################################
+      # Build
+      ############################################
       - name: Build & Test
         run: mvn -B clean verify
 
-      # ==========================================
-      # SonarQube Static Code Analysis
-      # ==========================================
+      ############################################
+      # SonarQube
+      ############################################
       - name: SonarQube Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=JavaProject \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.qualitygate.wait=true
+          mvn \
+          org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          -Dsonar.projectKey=JavaProject \
+          -Dsonar.host.url=$SONAR_HOST_URL \
+          -Dsonar.login=$SONAR_TOKEN \
+          -Dsonar.qualitygate.wait=true
 
-      # ==========================================
-      # Upload WAR Artifact
-      # ==========================================
-      - name: Upload WAR Artifact
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vprofile-war
-          path: target/*.war
-
-      # ==========================================
-      # Upload JaCoCo Coverage Report
-      # ==========================================
-      - name: Upload JaCoCo Report
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-report
-          path: target/site/jacoco/
-            # ==========================================
+      ############################################
       # Install Trivy
-      # ==========================================
+      ############################################
       - name: Install Trivy
         run: |
           sudo apt-get update
@@ -108,16 +80,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y trivy
 
-      # ==========================================
-      # Verify Trivy Installation
-      # ==========================================
+      ############################################
+      # Verify Trivy
+      ############################################
       - name: Verify Trivy
         run: trivy --version
 
-      # ==========================================
-      # Filesystem Security Scan
-      # ==========================================
-      - name: Trivy Filesystem Scan
+      ############################################
+      # Filesystem Scan
+      ############################################
+      - name: Filesystem Scan
         run: |
           trivy fs \
             --scanners vuln,secret,misconfig \
@@ -125,82 +97,114 @@ jobs:
             --exit-code 0 \
             .
 
-      # ==========================================
-      # Generate Filesystem Report
-      # ==========================================
-      - name: Generate Filesystem Report
+      ############################################
+      # Filesystem Report
+      ############################################
+      - name: Filesystem Report
         run: |
           trivy fs \
             --format table \
             --output trivy-fs-report.txt \
             .
 
-      # ==========================================
-      # Build Docker Image
-      # ==========================================
-      - name: Build Docker Image
-        run: |
-          docker build \
-            -t ci-cd:${{ github.sha }} \
-            .
+      ############################################
+      # Build Images
+      ############################################
+      - name: Build Docker Images
+        run: docker compose build
 
-      # ==========================================
-      # Scan Docker Image
-      # ==========================================
-      - name: Trivy Image Scan
+      ############################################
+      # Show Images
+      ############################################
+      - name: List Images
+        run: docker images
+
+      ############################################
+      # Scan Backend Image
+      ############################################
+      - name: Scan Backend Image
         run: |
           trivy image \
             --severity HIGH,CRITICAL \
             --exit-code 0 \
-            ci-cd:${{ github.sha }}
+            vprofile-back:latest
 
-      # ==========================================
-      # Generate Docker Image Report
-      # ==========================================
-      - name: Generate Docker Image Report
+      ############################################
+      # Scan Frontend Image
+      ############################################
+      - name: Scan Frontend Image
+        run: |
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --exit-code 0 \
+            vprofile-front:latest
+
+      ############################################
+      # Generate Backend Report
+      ############################################
+      - name: Backend Image Report
         run: |
           trivy image \
             --format table \
-            --output trivy-image-report.txt \
-            ci-cd:${{ github.sha }}
+            --output trivy-back-report.txt \
+            vprofile-back:latest
 
-      # ==========================================
-      # Upload WAR Artifact
-      # ==========================================
-      - name: Upload WAR Artifact
-        if: success()
+      ############################################
+      # Generate Frontend Report
+      ############################################
+      - name: Frontend Image Report
+        run: |
+          trivy image \
+            --format table \
+            --output trivy-front-report.txt \
+            vprofile-front:latest
+
+      ############################################
+      # Upload WAR
+      ############################################
+      - name: Upload WAR
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vprofile-war
+          name: WAR
           path: target/*.war
 
-      # ==========================================
-      # Upload JaCoCo Report
-      # ==========================================
-      - name: Upload JaCoCo Report
-        if: success()
+      ############################################
+      # Upload JaCoCo
+      ############################################
+      - name: Upload JaCoCo
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-report
+          name: JaCoCo
           path: target/site/jacoco/
 
-      # ==========================================
-      # Upload Trivy Filesystem Report
-      # ==========================================
-      - name: Upload Trivy Filesystem Report
-        if: success()
+      ############################################
+      # Upload FS Report
+      ############################################
+      - name: Upload FS Report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: trivy-filesystem-report
+          name: Trivy-FS
           path: trivy-fs-report.txt
 
-      # ==========================================
-      # Upload Trivy Image Report
-      # ==========================================
-      - name: Upload Trivy Image Report
-        if: success()
+      ############################################
+      # Upload Backend Report
+      ############################################
+      - name: Upload Backend Report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: trivy-image-report
-          path: trivy-image-report.txt
-            
+          name: Trivy-Backend
+          path: trivy-back-report.txt
+
+      ############################################
+      # Upload Frontend Report
+      ############################################
+      - name: Upload Frontend Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Trivy-Frontend
+          path: trivy-front-report.txt

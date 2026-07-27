@@ -1,0 +1,59 @@
+services:
+  db01:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    image: vprofile-db:latest
+    container_name: vprofile-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: vprodbpass
+      MYSQL_DATABASE: accounts
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pvprodbpass"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mc01:
+    image: memcached:latest
+    container_name: vprofile-memcached
+    restart: unless-stopped
+
+  rmq01:
+    image: rabbitmq:3-management
+    container_name: vprofile-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  backend:
+    build:
+      context: .
+      dockerfile: back/Dockerfile
+    image: vprofile-back:latest
+    container_name: vprofile-back
+    restart: unless-stopped
+    depends_on:
+      db01:
+        condition: service_healthy
+      mc01:
+        condition: service_started
+      rmq01:
+        condition: service_started
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    image: vprofile-front:latest
+    container_name: vprofile-front
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "80:80"
