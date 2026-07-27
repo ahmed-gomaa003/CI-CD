@@ -1,92 +1,113 @@
-name: Java CI
+# ==========================================
+# Install Trivy
+# ==========================================
+- name: Install Trivy
+  run: |
+    sudo apt-get update
+    sudo apt-get install -y wget gnupg lsb-release apt-transport-https
 
-on:
-  push:
-    branches:
-      - main
+    wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | \
+      gpg --dearmor | \
+      sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
 
-permissions:
-  contents: read
+    echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | \
+      sudo tee /etc/apt/sources.list.d/trivy.list
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+    sudo apt-get update
+    sudo apt-get install -y trivy
 
-    steps:
-      # ==========================================
-      # Checkout Source Code
-      # ==========================================
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+# ==========================================
+# Verify Trivy Installation
+# ==========================================
+- name: Verify Trivy
+  run: trivy --version
 
-      # ==========================================
-      # Setup Java
-      # ==========================================
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-          cache: maven
+# ==========================================
+# Filesystem Security Scan
+# ==========================================
+- name: Trivy Filesystem Scan
+  run: |
+    trivy fs \
+      --scanners vuln,secret,misconfig \
+      --severity HIGH,CRITICAL \
+      --exit-code 1 \
+      .
 
-      # ==========================================
-      # Cache SonarQube Scanner
-      # ==========================================
-      - name: Cache SonarQube Packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: |
-            ${{ runner.os }}-sonar
+# ==========================================
+# Generate Filesystem Report
+# ==========================================
+- name: Generate Filesystem Report
+  run: |
+    trivy fs \
+      --format table \
+      --output trivy-fs-report.txt \
+      .
 
-      # ==========================================
-      # Verify Environment
-      # ==========================================
-      - name: Verify Java & Maven
-        run: |
-          java -version
-          javac -version
-          mvn -version
+# ==========================================
+# Build Docker Image
+# ==========================================
+- name: Build Docker Image
+  run: |
+    docker build \
+      -t vprofile:${{ github.sha }} \
+      .
 
-      # ==========================================
-      # Build & Run Tests
-      # ==========================================
-      - name: Build & Test
-        run: mvn -B clean verify
+# ==========================================
+# Scan Docker Image
+# ==========================================
+- name: Trivy Image Scan
+  run: |
+    trivy image \
+      --severity HIGH,CRITICAL \
+      --exit-code 1 \
+      vprofile:${{ github.sha }}
 
-      # ==========================================
-      # SonarQube Static Code Analysis
-      # ==========================================
-      - name: SonarQube Analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=JavaProject \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.qualitygate.wait=true
+# ==========================================
+# Generate Docker Image Report
+# ==========================================
+- name: Generate Docker Image Report
+  run: |
+    trivy image \
+      --format table \
+      --output trivy-image-report.txt \
+      vprofile:${{ github.sha }}
 
-      # ==========================================
-      # Upload WAR Artifact
-      # ==========================================
-      - name: Upload WAR Artifact
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vprofile-war
-          path: target/*.war
+# ==========================================
+# Upload WAR Artifact
+# ==========================================
+- name: Upload WAR Artifact
+  if: success()
+  uses: actions/upload-artifact@v4
+  with:
+    name: vprofile-war
+    path: target/*.war
 
-      # ==========================================
-      # Upload JaCoCo Coverage Report
-      # ==========================================
-      - name: Upload JaCoCo Report
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-report
-          path: target/site/jacoco/
+# ==========================================
+# Upload JaCoCo Report
+# ==========================================
+- name: Upload JaCoCo Report
+  if: success()
+  uses: actions/upload-artifact@v4
+  with:
+    name: jacoco-report
+    path: target/site/jacoco/
+
+# ==========================================
+# Upload Trivy Filesystem Report
+# ==========================================
+- name: Upload Trivy Filesystem Report
+  if: success()
+  uses: actions/upload-artifact@v4
+  with:
+    name: trivy-filesystem-report
+    path: trivy-fs-report.txt
+
+# ==========================================
+# Upload Trivy Image Report
+# ==========================================
+- name: Upload Trivy Image Report
+  if: success()
+  uses: actions/upload-artifact@v4
+  with:
+    name: trivy-image-report
+    path: trivy-image-report.txt
