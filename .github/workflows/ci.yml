@@ -258,3 +258,6 @@ jobs:
         run: |
           docker push \
             ${{ steps.login-ecr.outputs.registry }}/vprofile-db:${{ github.sha }}
+
+      - name: List Docker Images After Tag
+        run: docker images
