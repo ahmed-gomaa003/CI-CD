@@ -72,6 +72,54 @@ jobs:
             -t vprofile-back:${{ github.sha }} \
             .
       ############################################
+      # Install Trivy
+      ############################################
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg lsb-release apt-transport-https
+
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | \
+            gpg --dearmor | \
+            sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | \
+            sudo tee /etc/apt/sources.list.d/trivy.list
+
+          sudo apt-get update
+          sudo apt-get install -y trivy
+      ############################################
+      # Verify Trivy
+      ############################################
+      - name: Verify Trivy
+        run: trivy --version
+      ############################################
+      # Scan Backend Image
+      ############################################
+      - name: Trivy Backend Scan
+        run: |
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --exit-code 0 \
+            vprofile-back:${{ github.sha }}
+      ############################################
+      # Generate Backend Report
+      ############################################
+      - name: Generate Backend Report
+        run: |
+          trivy image \
+            --format table \
+            --output trivy-backend-report.txt \
+            vprofile-back:${{ github.sha }}
+      ############################################
+      # Upload Backend Report
+      ############################################
+      - name: Upload Backend Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-backend-report
+          path: trivy-backend-report.txt
+      ############################################
       # Upload WAR
       ############################################
       - name: Upload WAR
