@@ -69,7 +69,7 @@ jobs:
         run: |
           docker build \
             -f back/Dockerfile \
-            -t vprofile-back:${{ github.sha }} \
+            -t vprofile-backend:${{ github.sha }} \
             .
       ############################################
       # Install Trivy
@@ -101,7 +101,7 @@ jobs:
           trivy image \
             --severity HIGH,CRITICAL \
             --exit-code 0 \
-            vprofile-back:${{ github.sha }}
+            vprofile-backend:${{ github.sha }}
       ############################################
       # Generate Backend Report
       ############################################
@@ -110,7 +110,7 @@ jobs:
           trivy image \
             --format table \
             --output trivy-backend-report.txt \
-            vprofile-back:${{ github.sha }}
+            vprofile-backend:${{ github.sha }}
       ############################################
       # Upload Backend Report
       ############################################
@@ -229,8 +229,8 @@ jobs:
       - name: Tag Backend Image
         run: |
           docker tag \
-            vprofile-back:${{ github.sha }} \
-            ${{ steps.login-ecr.outputs.registry }}/vprofile-back:${{ github.sha }}
+            vprofile-backend:${{ github.sha }} \
+            ${{ steps.login-ecr.outputs.registry }}/vprofile-backend:${{ github.sha }}
 
       - name: Tag Frontend Image
         run: |
@@ -247,7 +247,7 @@ jobs:
       - name: Push Backend Image
         run: |
           docker push \
-            ${{ steps.login-ecr.outputs.registry }}/vprofile-back:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/vprofile-backend:${{ github.sha }}
 
       - name: Push Frontend Image
         run: |
