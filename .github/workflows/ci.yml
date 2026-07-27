@@ -208,3 +208,53 @@ jobs:
         with:
           name: JaCoCo
           path: target/site/jacoco/
+      ############################################
+      # Configure AWS Credentials
+      ############################################
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      ############################################
+      # Login to Amazon ECR
+      ############################################
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Tag Backend Image
+        run: |
+          docker tag \
+            vprofile-backend:${{ github.sha }} \
+            ${{ steps.login-ecr.outputs.registry }}/vprofile-backend:${{ github.sha }}
+
+      - name: Tag Frontend Image
+        run: |
+          docker tag \
+            vprofile-frontend:${{ github.sha }} \
+            ${{ steps.login-ecr.outputs.registry }}/vprofile-frontend:${{ github.sha }}
+
+      - name: Tag Database Image
+        run: |
+          docker tag \
+            vprofile-db:${{ github.sha }} \
+            ${{ steps.login-ecr.outputs.registry }}/vprofile-db:${{ github.sha }}
+            
+      - name: Push Backend Image
+        run: |
+          docker push \
+            ${{ steps.login-ecr.outputs.registry }}/vprofile-backend:${{ github.sha }}
+
+      - name: Push Frontend Image
+        run: |
+          docker push \
+            ${{ steps.login-ecr.outputs.registry }}/vprofile-frontend:${{ github.sha }}
+          
+      - name: Push Database Image
+        run: |
+          docker push \
+            ${{ steps.login-ecr.outputs.registry }}/vprofile-db:${{ github.sha }}
