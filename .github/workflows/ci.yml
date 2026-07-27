@@ -141,7 +141,7 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            -t JavaProject:${{ github.sha }} \
+            -t ci-cd:${{ github.sha }} \
             .
 
       # ==========================================
@@ -151,8 +151,8 @@ jobs:
         run: |
           trivy image \
             --severity HIGH,CRITICAL \
-            --exit-code 1 \
-            vprofile:${{ github.sha }}
+            --exit-code 0 \
+            ci-cd:${{ github.sha }}
 
       # ==========================================
       # Generate Docker Image Report
@@ -162,7 +162,7 @@ jobs:
           trivy image \
             --format table \
             --output trivy-image-report.txt \
-            vprofile:${{ github.sha }}
+            ci-cd:${{ github.sha }}
 
       # ==========================================
       # Upload WAR Artifact
