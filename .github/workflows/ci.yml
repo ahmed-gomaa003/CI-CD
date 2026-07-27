@@ -120,6 +120,76 @@ jobs:
           name: trivy-backend-report
           path: trivy-backend-report.txt
       ############################################
+      # Build Frontend Docker Image
+      ############################################
+      - name: Build Frontend Docker Image
+        run: |
+          docker build \
+            -f front/Dockerfile \
+            -t vprofile-frontend:${{ github.sha }} \
+            front
+      ############################################
+      # Trivy Frontend Scan
+      ############################################
+      - name: Trivy Frontend Scan
+        run: |
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --exit-code 0 \
+            vprofile-frontend:${{ github.sha }}
+      ############################################
+      # Generate Frontend Report
+      ############################################
+      - name: Generate Frontend Report
+        run: |
+          trivy image \
+            --format table \
+            --output trivy-frontend-report.txt \
+            vprofile-frontend:${{ github.sha }}
+      ############################################
+      # Upload Frontend Report
+      ############################################
+      - name: Upload Frontend Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-frontend-report
+          path: trivy-frontend-report.txt
+      ############################################
+      # Build Database Docker Image
+      ############################################
+      - name: Build Database Docker Image
+        run: |
+          docker build \
+            -f db/Dockerfile \
+            -t vprofile-db:${{ github.sha }} \
+            db
+      ############################################
+      # Trivy Database Scan
+      ############################################
+      - name: Trivy Database Scan
+        run: |
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --exit-code 0 \
+            vprofile-db:${{ github.sha }}
+      ############################################
+      # Generate Database Report
+      ############################################
+      - name: Generate Database Report
+        run: |
+          trivy image \
+            --format table \
+            --output trivy-db-report.txt \
+            vprofile-db:${{ github.sha }}
+      ############################################
+      # Upload Database Report
+      ############################################
+      - name: Upload Database Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-db-report
+          path: trivy-db-report.txt
+      ############################################
       # Upload WAR
       ############################################
       - name: Upload WAR
