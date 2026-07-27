@@ -71,6 +71,8 @@ jobs:
             -f back/Dockerfile \
             -t vprofile-back:${{ github.sha }} \
             .
+      - name: List Docker Images
+         run: docker images
       ############################################
       # Install Trivy
       ############################################
@@ -128,6 +130,8 @@ jobs:
             -f front/Dockerfile \
             -t vprofile-frontend:${{ github.sha }} \
             front
+      - name: List Docker Images
+         run: docker images
       ############################################
       # Trivy Frontend Scan
       ############################################
@@ -163,6 +167,8 @@ jobs:
             -f db/Dockerfile \
             -t vprofile-db:${{ github.sha }} \
             db
+      - name: List Docker Images
+        run: docker images
       ############################################
       # Trivy Database Scan
       ############################################
@@ -243,7 +249,7 @@ jobs:
           docker tag \
             vprofile-db:${{ github.sha }} \
             ${{ steps.login-ecr.outputs.registry }}/vprofile-db:${{ github.sha }}
-            
+
       - name: Push Backend Image
         run: |
           docker push \
