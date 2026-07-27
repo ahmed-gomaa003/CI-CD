@@ -62,103 +62,15 @@ jobs:
           -Dsonar.login=$SONAR_TOKEN \
           -Dsonar.qualitygate.wait=true
 
-      ############################################
-      # Install Trivy
-      ############################################
-      - name: Install Trivy
+      # ==========================================
+      # Build Backend Docker Image
+      # ==========================================
+      - name: Build Backend Docker Image
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget gnupg lsb-release apt-transport-https
-
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | \
-            gpg --dearmor | \
-            sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | \
-            sudo tee /etc/apt/sources.list.d/trivy.list
-
-          sudo apt-get update
-          sudo apt-get install -y trivy
-
-      ############################################
-      # Verify Trivy
-      ############################################
-      - name: Verify Trivy
-        run: trivy --version
-
-      ############################################
-      # Filesystem Scan
-      ############################################
-      - name: Filesystem Scan
-        run: |
-          trivy fs \
-            --scanners vuln,secret,misconfig \
-            --severity HIGH,CRITICAL \
-            --exit-code 0 \
+          docker build \
+            -f back/Dockerfile \
+            -t vprofile-back:${{ github.sha }} \
             .
-
-      ############################################
-      # Filesystem Report
-      ############################################
-      - name: Filesystem Report
-        run: |
-          trivy fs \
-            --format table \
-            --output trivy-fs-report.txt \
-            .
-
-      ############################################
-      # Build Images
-      ############################################
-      - name: Build Docker Images
-        run: docker compose build
-
-      ############################################
-      # Show Images
-      ############################################
-      - name: List Images
-        run: docker images
-
-      ############################################
-      # Scan Backend Image
-      ############################################
-      - name: Scan Backend Image
-        run: |
-          trivy image \
-            --severity HIGH,CRITICAL \
-            --exit-code 0 \
-            vprofile-back:latest
-
-      ############################################
-      # Scan Frontend Image
-      ############################################
-      - name: Scan Frontend Image
-        run: |
-          trivy image \
-            --severity HIGH,CRITICAL \
-            --exit-code 0 \
-            vprofile-front:latest
-
-      ############################################
-      # Generate Backend Report
-      ############################################
-      - name: Backend Image Report
-        run: |
-          trivy image \
-            --format table \
-            --output trivy-back-report.txt \
-            vprofile-back:latest
-
-      ############################################
-      # Generate Frontend Report
-      ############################################
-      - name: Frontend Image Report
-        run: |
-          trivy image \
-            --format table \
-            --output trivy-front-report.txt \
-            vprofile-front:latest
-
       ############################################
       # Upload WAR
       ############################################
@@ -178,33 +90,3 @@ jobs:
         with:
           name: JaCoCo
           path: target/site/jacoco/
-
-      ############################################
-      # Upload FS Report
-      ############################################
-      - name: Upload FS Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Trivy-FS
-          path: trivy-fs-report.txt
-
-      ############################################
-      # Upload Backend Report
-      ############################################
-      - name: Upload Backend Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Trivy-Backend
-          path: trivy-back-report.txt
-
-      ############################################
-      # Upload Frontend Report
-      ############################################
-      - name: Upload Frontend Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Trivy-Frontend
-          path: trivy-front-report.txt
