@@ -141,7 +141,7 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            -t vprofile:${{ github.sha }} \
+            -t JavaProject:${{ github.sha }} \
             .
 
       # ==========================================
