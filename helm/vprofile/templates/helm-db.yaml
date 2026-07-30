@@ -27,9 +27,10 @@ spec:
             - containerPort: {{ .Values.db.service.targetPort }}
           env:
             - name: MYSQL_ROOT_PASSWORD
-              value: "{{ .Values.db.database-password }}"
+              value: "{{ .Values.db.databasePassword }}"
+            
             - name: MYSQL_DATABASE
-              value: "{{ .Values.db.database-name }}"
+              value: "{{ .Values.db.databaseName }}"
           livenessProbe:
             exec:
               command:

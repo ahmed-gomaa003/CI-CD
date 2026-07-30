@@ -32,8 +32,8 @@ db:
   service:
     port: 3306
     targetPort: 3306
-  database-name: vprofiledb
-  database-password: vprofiledb
+  databaseName: vprofiledb
+  databasePassword: vprofiledb 
 
 rabbitmq:
   replicaCount: 1
