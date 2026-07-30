@@ -27,27 +27,24 @@ spec:
             - containerPort: {{ .Values.db.service.targetPort }}
           env:
             - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: db-secret
-                  key: MYSQL_ROOT_PASSWORD
+              value: "{{ .Values.db.database-password }}"
             - name: MYSQL_DATABASE
-              value: "{{ .Values.db.database }}"
+              value: "{{ .Values.db.database-name }}"
           livenessProbe:
             exec:
               command:
-                ["mysqladmin", "ping", "-h", "localhost", "-pvprodbpass"]
+                ["mysqladmin", "ping", "-h", "localhost", "-p" "{{ .Values.db.database-password }}"]
             initialDelaySeconds: 20
             periodSeconds: 10
-            timeoutSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 10
           readinessProbe:
             exec:
               command:
-                ["mysqladmin", "ping", "-h", "localhost", "-pvprodbpass"]
+                ["mysqladmin", "ping", "-h", "localhost", "-p" "{{ .Values.db.database-password }}"]
             initialDelaySeconds: 20
             periodSeconds: 10
-            timeoutSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 10
           volumeMounts:
             - name: db-data
