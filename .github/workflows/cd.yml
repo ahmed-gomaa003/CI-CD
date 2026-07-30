@@ -74,5 +74,5 @@ jobs:
         run: |
           kubectl rollout status deployment/frontend -n vprofile --timeout=300s
           kubectl rollout status deployment/backend -n vprofile --timeout=300s
-          kubectl rollout status deployment/db -n vprofile --timeout=300s
+          kubectl rollout status deployment/db01 -n vprofile --timeout=300s
       
