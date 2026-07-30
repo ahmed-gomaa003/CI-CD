@@ -1,11 +1,14 @@
 name: CD
 
 on:
-  workflow_run:
+  #workflow_run:
     #workflows:
     #  - "Java CI"
     #types:
     #  - completed
+  push:
+    branches:
+      - main
     paths:
       - "helm/vprofile/**"
 
