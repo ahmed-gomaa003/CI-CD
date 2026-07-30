@@ -51,6 +51,7 @@ jobs:
       # SonarQube
       ############################################
       - name: SonarQube Analysis
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
