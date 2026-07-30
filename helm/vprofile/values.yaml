@@ -3,7 +3,7 @@ namespace: vprofile
 frontend:
   replicaCount: 1
   image:
-    repository: 484056256277.dkr.ecr.eu-north-1.amazonaws.com/vprofile-frontend
+    repository: 484056256277.dkr.ecr.us-east-1.amazonaws.com/vprofile-front
     tag: "1.0"
 
   service:
@@ -15,7 +15,7 @@ frontend:
 backend:
   replicaCount: 1
   image:
-    repository: 484056256277.dkr.ecr.eu-north-1.amazonaws.com/vprofile-backend
+    repository: 484056256277.dkr.ecr.us-east-1.amazonaws.com/vprofile-back
     tag: "1.0"
 
   service:
@@ -26,7 +26,7 @@ backend:
 db:
   replicaCount: 1
   image:
-    repository: 484056256277.dkr.ecr.eu-north-1.amazonaws.com/vprofile-db
+    repository: 484056256277.dkr.ecr.us-east-1.amazonaws.com/vprofile-db
     tag: "1.0"
 
   service:
