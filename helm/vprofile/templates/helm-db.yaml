@@ -33,7 +33,7 @@ spec:
               value: "{{ .Values.db.databaseName }}"
           livenessProbe:
             exec:
-              command:
+              command: 
                 ["mysqladmin", "ping", "-h", "localhost", "-p" "{{ .Values.db.databasePassword }}"]
             initialDelaySeconds: 20
             periodSeconds: 10
