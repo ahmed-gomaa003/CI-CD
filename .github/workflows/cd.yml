@@ -1,17 +1,12 @@
 name: CD
 
 on:
-  #workflow_run:
-    #workflows:
-    #  - "Java CI"
-    #types:
-    #  - completed
-  push:
-    branches:
-      - main
-    paths:
-      - "helm/vprofile/**"
- 
+  workflow_run:
+    workflows:
+      - "Java CI"
+    types:
+      - completed
+
 permissions:
   contents: read
 
@@ -79,5 +74,5 @@ jobs:
         run: |
           kubectl rollout status deployment/frontend -n vprofile --timeout=300s
           kubectl rollout status deployment/backend -n vprofile --timeout=300s
-          kubectl rollout status deployment/db01 -n vprofile --timeout=300s
+          kubectl rollout status deployment/db -n vprofile --timeout=300s
       
