@@ -36,6 +36,9 @@ jobs:
           aws eks update-kubeconfig \
             --region ${{ secrets.AWS_REGION }} \
             --name ${{ secrets.EKS_CLUSTER_NAME }}
+            
+      - name: Verify AWS Identity
+         run: aws sts get-caller-identity
 #check connectivity to the EKS cluster
       - name: Check kubectl connectivity
         run: |
@@ -59,7 +62,7 @@ jobs:
       - name: Verify Pods
         run: |
           kubectl get pods -n vprofile
-          
+
 
       - name: Verify Services
         run: |
