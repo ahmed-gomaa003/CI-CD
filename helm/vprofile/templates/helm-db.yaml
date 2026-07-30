@@ -34,7 +34,7 @@ spec:
           livenessProbe:
             exec:
               command:
-                ["mysqladmin", "ping", "-h", "localhost", "-p" "{{ .Values.db.database-password }}"]
+                ["mysqladmin", "ping", "-h", "localhost", "-p" "{{ .Values.db.databasePassword }}"]
             initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 10
@@ -42,7 +42,7 @@ spec:
           readinessProbe:
             exec:
               command:
-                ["mysqladmin", "ping", "-h", "localhost", "-p" "{{ .Values.db.database-password }}"]
+                ["mysqladmin", "ping", "-h", "localhost", "-p" "{{ .Values.db.databasePassword }}"]
             initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 10
