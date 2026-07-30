@@ -37,8 +37,6 @@ jobs:
             --region ${{ secrets.AWS_REGION }} \
             --name ${{ secrets.EKS_CLUSTER_NAME }}
 
-      - name: Verify AWS Identity
-         run: aws sts get-caller-identity
 #check connectivity to the EKS cluster
       - name: Check kubectl connectivity
         run: |
