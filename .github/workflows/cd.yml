@@ -42,6 +42,11 @@ jobs:
         run: |
           kubectl get nodes
 
+      - name: Check resources
+        run: |
+          kubectl get deployment frontend -n vprofile -o yaml | grep -A5 managedFields
+
+
       - name: Install Helm
         uses: azure/setup-helm@v4
       
